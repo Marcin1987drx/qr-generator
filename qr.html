@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Auto QR Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <script>
+    // Pobierz parametr z URL
+    function getParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    // Generuj QR i wyślij go do Power Automate
+    function generateAndSendQR(code, itemId) {
+      const container = document.createElement("div");
+      new QRCode(container, {
+        text: code,
+        width: 300,
+        height: 300
+      });
+
+      setTimeout(() => {
+        const img = container.querySelector("img");
+        if (!img) return alert("Nie udało się wygenerować QR");
+
+        const base64 = img.src.split(',')[1];
+
+        // Wyślij do Power Automate
+        fetch("https://your-flow-url-here", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            code: code,
+            itemId: itemId,
+            imageBase64: base64
+          })
+        }).then(res => {
+          if (res.ok) {
+            alert("QR został przesłany do listy.");
+          } else {
+            alert("Błąd podczas przesyłania QR.");
+          }
+        }).catch(err => alert("Błąd: " + err));
+      }, 500);
+    }
+
+    window.onload = () => {
+      const code = getParam("code");
+      const itemId = getParam("itemId");
+      if (code && itemId) {
+        generateAndSendQR(code, itemId);
+      } else {
+        alert("Brakuje parametru code lub itemId w adresie URL.");
+      }
+    };
+  </script>
+</body>
+</html>
