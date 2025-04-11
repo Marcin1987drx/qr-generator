@@ -7,13 +7,13 @@
 </head>
 <body>
   <script>
-    // Pobierz parametr z URL
+    // Funkcja do pobierania parametrów z URL
     function getParam(name) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(name);
     }
 
-    // Generuj QR i wyślij go do Power Automate
+    // Funkcja do generowania QR i wysyłania do Power Automate
     function generateAndSendQR(code, itemId) {
       const container = document.createElement("div");
       new QRCode(container, {
@@ -28,12 +28,12 @@
 
         const base64 = img.src.split(',')[1];
 
-        // Wyślij do Power Automate
-        fetch("https://your-flow-url-here", {
+        // WYMIEN TEN LINK NA SWOJ LINK DO POWER AUTOMATE FLOW
+        const flowUrl = "https://your-flow-url-here";
+
+        fetch(flowUrl, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             code: code,
             itemId: itemId,
@@ -41,21 +41,23 @@
           })
         }).then(res => {
           if (res.ok) {
-            alert("QR został przesłany do listy.");
+            alert("Kod QR przesłany do MS Lists!");
           } else {
-            alert("Błąd podczas przesyłania QR.");
+            alert("Błąd przy przesyłaniu do Flow.");
           }
-        }).catch(err => alert("Błąd: " + err));
+        }).catch(err => alert("Błąd sieci: " + err));
       }, 500);
     }
 
+    // START po załadowaniu strony
     window.onload = () => {
       const code = getParam("code");
       const itemId = getParam("itemId");
+
       if (code && itemId) {
         generateAndSendQR(code, itemId);
       } else {
-        alert("Brakuje parametru code lub itemId w adresie URL.");
+        alert("Brakuje parametru code lub itemId w adresie URL");
       }
     };
   </script>
