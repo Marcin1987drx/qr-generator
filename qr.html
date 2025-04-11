@@ -2,64 +2,46 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Auto QR Generator</title>
+  <title>Drukuj QR</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    #qrcode { width: 300px; height: 300px; }
+    @media print {
+      body { margin: 0; }
+    }
+  </style>
 </head>
 <body>
+  <div id="qrcode"></div>
+
   <script>
-    // Funkcja do pobierania parametrów z URL
     function getParam(name) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(name);
     }
 
-    // Funkcja do generowania QR i wysyłania do Power Automate
-    function generateAndSendQR(code, itemId) {
-      const container = document.createElement("div");
+    function generateQRAndPrint(code) {
+      const container = document.getElementById("qrcode");
+      container.innerHTML = ""; // reset
       new QRCode(container, {
         text: code,
         width: 300,
         height: 300
       });
 
+      // poczekaj aż QR się wyrenderuje, potem drukuj
       setTimeout(() => {
-        const img = container.querySelector("img");
-        if (!img) return alert("Nie udało się wygenerować QR");
-
-        const base64 = img.src.split(',')[1];
-
-        // WYMIEN TEN LINK NA SWOJ LINK DO POWER AUTOMATE FLOW
-        const flowUrl = "https://your-flow-url-here";
-
-        fetch(flowUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            code: code,
-            itemId: itemId,
-            imageBase64: base64
-          })
-        }).then(res => {
-          if (res.ok) {
-            alert("Kod QR przesłany do MS Lists!");
-          } else {
-            alert("Błąd przy przesyłaniu do Flow.");
-          }
-        }).catch(err => alert("Błąd sieci: " + err));
-      }, 500);
+        window.print();
+      }, 1000);
     }
 
-    // START po załadowaniu strony
-    window.onload = () => {
-      const code = getParam("code");
-      const itemId = getParam("itemId");
-
-      if (code && itemId) {
-        generateAndSendQR(code, itemId);
-      } else {
-        alert("Brakuje parametru code lub itemId w adresie URL");
-      }
-    };
+    const code = getParam("code");
+    if (code) {
+      generateQRAndPrint(code);
+    } else {
+      alert("Brakuje parametru ?code=...");
+    }
   </script>
 </body>
 </html>
